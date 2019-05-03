@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Iron&#39;s Blog | React Native 使用 &amp;&amp; 运算符产生的陷阱</title>
+    <meta name="description" content="Just recording something">
+    
+    
+    <link rel="preload" href="/assets/css/23.styles.40677ac6.css" as="style"><link rel="preload" href="/assets/js/app.0caf2975.js" as="script"><link rel="preload" href="/assets/js/9.d4b854ad.js" as="script"><link rel="prefetch" href="/assets/js/0.9f59e96c.js"><link rel="prefetch" href="/assets/js/1.9710c8e3.js"><link rel="prefetch" href="/assets/js/2.717bf58a.js"><link rel="prefetch" href="/assets/js/3.eb3ce0d5.js"><link rel="prefetch" href="/assets/js/4.81a9fd94.js"><link rel="prefetch" href="/assets/js/5.0289cb67.js"><link rel="prefetch" href="/assets/js/6.58a56d39.js"><link rel="prefetch" href="/assets/js/7.5fb1dc3c.js"><link rel="prefetch" href="/assets/js/8.af6cf755.js"><link rel="prefetch" href="/assets/js/10.f94d82bf.js"><link rel="prefetch" href="/assets/js/11.68ad2dfd.js"><link rel="prefetch" href="/assets/js/12.fe4f1f96.js"><link rel="prefetch" href="/assets/js/13.1594182b.js"><link rel="prefetch" href="/assets/js/14.5e2158c7.js"><link rel="prefetch" href="/assets/js/15.cb7e4c09.js"><link rel="prefetch" href="/assets/js/16.637e1af2.js"><link rel="prefetch" href="/assets/js/17.c68f0f15.js"><link rel="prefetch" href="/assets/js/18.3f6c685d.js"><link rel="prefetch" href="/assets/js/19.5d57c2ad.js"><link rel="prefetch" href="/assets/js/20.725e2252.js"><link rel="prefetch" href="/assets/js/21.c0d37235.js"><link rel="prefetch" href="/assets/js/22.c549c2ec.js">
+    <link rel="stylesheet" href="/assets/css/23.styles.40677ac6.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div><a href="/" class="home-link router-link-active"><!----><span class="site-name">
+      Iron's Blog
+    </span></a><div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""><!----></div><!----></div></header><div class="sidebar-mask"></div><div class="sidebar"><!----><!----></div><div class="page"><div class="content"><h1 id="react-native-使用-运算符产生的陷阱"><a href="#react-native-使用-运算符产生的陷阱" aria-hidden="true" class="header-anchor">#</a> React Native 使用 &amp;&amp; 运算符产生的陷阱</h1><h2 id="问题背景"><a href="#问题背景" aria-hidden="true" class="header-anchor">#</a> 问题背景</h2><p>近期的工作大部分都是关于React Native的。之前使用RN写的旧项目在友盟里报了一个这样的错误</p><pre class="language-text"><code>java.lang.RuntimeException: Cannot add a child that doesn't have a YogaNode to a parent without a measure function! (Trying to add a 'ReactRawTextShadowNode' to a 'LayoutShadowNode')
+...（后面太长省略掉了）
+</code></pre><h2 id="原因"><a href="#原因" aria-hidden="true" class="header-anchor">#</a> 原因</h2><p>这个错误之前遇到过，当React Native 渲染出的文字节点并没有被<code>&lt;Text&gt;</code>标签包裹时，会出现这样的错误。</p><p>随后我用<code>create-react-native-app</code>创建了新的Demo,并修改<code>app.js</code>中的代码至如下
+<img src="/assets/img/1.ac42918c.png" alt></p><p>去掉<code>&lt;Text/&gt;</code>标签并运行</p><p>当我们的文字节点没有被<code>&lt;Text&gt;</code>标签包裹时，React Native会限制这种行为并报错。
+<img src="/assets/img/2.3602cf68.png" alt>
+这是在React Native 0.50下错误信息（最后会有个0.56版本的错误信息，表意比这个清楚很多）</p><p>在我的业务代码中，有这样一段代码
+<img src="/assets/img/4.d26bd758.png" alt>
+我这段代码中，按照后端给的接口文档，evaluation的类型是<code>string</code>或<code>null</code>。后端返回的大部分非<code>null</code>的数据中，都是非空的字符串。</p><p>所以在大部分的情况下，这段代码是可以运行的。</p><p>然而，有一种情况，是我当初没有考虑到的。当evaluation字段为<strong>空字符串</strong>时，这个”逻辑与“的表达式会返回 <code>&amp;&amp;</code>前面的部分，即<code>&quot;&quot;</code>，</p><p>在React中，render函数会根据返回值的类型不同，选择不同的渲染策略：</p><ul><li>React elements. Typically created via JSX. For example, <div></div> and <MyComponent></MyComponent> are React elements that instruct React to render a DOM node, or another user-defined component, respectively.</li><li>Arrays and fragments. Let you return multiple elements from render. See the documentation on fragments for more details.</li><li>Portals. Let you render children into a different DOM subtree. See the documentation on portals for more details.</li><li>String and numbers. These are rendered as text nodes in the DOM.</li><li>Booleans or null. Render nothing. (Mostly exists to support return test &amp;&amp; <Child></Child> pattern, where test is boolean.)</li></ul><p>显然，当为Boolean或者null的时候，React不会渲染任何东西。而对于字符串和数字，那么会渲染一个Text Node 到 DOM上。当React的执行环境为浏览器时，渲染一个空字符串的Text Node 到 DOM上和不渲染任何东西，对于最后显示的效果都是一样的.</p><p>然而在React Native环境中，因为Text Node必须被<code>&lt;Text&gt;</code>标签包裹的限制，若空字符串被直接渲染，外部没有<code>&lt;Text&gt;</code>标签包裹,就会导致这样的错误。</p><h2 id="解决方法"><a href="#解决方法" aria-hidden="true" class="header-anchor">#</a> 解决方法</h2><p>这个问题要解决其实并不难，只需要用将逻辑与表达式第一个操作数强制转化为Boolean再与第二个操作数<code>&amp;&amp;</code>即可。</p><p>因此上面的代码改为
+<img src="/assets/img/5.14c48207.png" alt>
+或者骚气一点，使用<code>!!</code>的trick可以将一个值转化为Boolean。（有些团队这样写可能过不了code review 233）
+<img src="/assets/img/6.ae23ba4f.png" alt>
+这个错误告诉我们，React Native环境下，在JSX表达式中使用逻辑与运算符时，一定要避免渲染0或者空字符串到DOM上但没有被<code>&lt;Text/&gt;</code>标签包裹的这种情况。</p><h2 id="参考"><a href="#参考" aria-hidden="true" class="header-anchor">#</a> 参考</h2><p><a href="https://reactjs.org/docs/react-component.html#render" target="_blank" rel="noopener noreferrer">React官网关于render函数对各种不同类型返回值渲染策略</a></p><h2 id="ps"><a href="#ps" aria-hidden="true" class="header-anchor">#</a> PS</h2><p><img src="/assets/img/3.7ce5a234.png" alt>
+React Native 0.56在上面所说情况下的报错信息，比起0.50的报错，表达更清楚了。</p></div><!----><!----></div></div></div>
+    <script src="/assets/js/9.d4b854ad.js" defer></script><script src="/assets/js/app.0caf2975.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Iron&#39;s Blog</title>
+    <meta name="description" content="Just recording something">
+    
+    
+    <link rel="preload" href="/assets/css/23.styles.40677ac6.css" as="style"><link rel="preload" href="/assets/js/app.0caf2975.js" as="script"><link rel="preload" href="/assets/js/11.68ad2dfd.js" as="script"><link rel="prefetch" href="/assets/js/0.9f59e96c.js"><link rel="prefetch" href="/assets/js/1.9710c8e3.js"><link rel="prefetch" href="/assets/js/2.717bf58a.js"><link rel="prefetch" href="/assets/js/3.eb3ce0d5.js"><link rel="prefetch" href="/assets/js/4.81a9fd94.js"><link rel="prefetch" href="/assets/js/5.0289cb67.js"><link rel="prefetch" href="/assets/js/6.58a56d39.js"><link rel="prefetch" href="/assets/js/7.5fb1dc3c.js"><link rel="prefetch" href="/assets/js/8.af6cf755.js"><link rel="prefetch" href="/assets/js/9.d4b854ad.js"><link rel="prefetch" href="/assets/js/10.f94d82bf.js"><link rel="prefetch" href="/assets/js/12.fe4f1f96.js"><link rel="prefetch" href="/assets/js/13.1594182b.js"><link rel="prefetch" href="/assets/js/14.5e2158c7.js"><link rel="prefetch" href="/assets/js/15.cb7e4c09.js"><link rel="prefetch" href="/assets/js/16.637e1af2.js"><link rel="prefetch" href="/assets/js/17.c68f0f15.js"><link rel="prefetch" href="/assets/js/18.3f6c685d.js"><link rel="prefetch" href="/assets/js/19.5d57c2ad.js"><link rel="prefetch" href="/assets/js/20.725e2252.js"><link rel="prefetch" href="/assets/js/21.c0d37235.js"><link rel="prefetch" href="/assets/js/22.c549c2ec.js">
+    <link rel="stylesheet" href="/assets/css/23.styles.40677ac6.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div><a href="/" class="home-link router-link-active"><!----><span class="site-name">
+      Iron's Blog
+    </span></a><div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""><!----></div><!----></div></header><div class="sidebar-mask"></div><div class="sidebar"><!----><!----></div><div class="page"><div class="content"><p>Render函数的第一步是Create Container</p><pre class="language-javascript"><code>
+<span class="token keyword">let</span> container <span class="token operator">=</span> <span class="token function">createContainer</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span><span class="token punctuation">,</span>
+</code></pre><pre class="language-javascript"><code>
+<span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token function">createContainer</span><span class="token punctuation">(</span>root<span class="token punctuation">,</span> onlyGet<span class="token punctuation">,</span> validate<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    validate <span class="token operator">=</span> validate <span class="token operator">||</span> validateTag<span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">validate</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">throw</span> <span class="token template-string"><span class="token string">`container is not a element`</span></span><span class="token punctuation">;</span> <span class="token comment">// eslint-disable-line</span>
+    <span class="token punctuation">}</span>
+
+    root<span class="token punctuation">.</span>anuProp <span class="token operator">=</span> <span class="token number">2018</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> useProp <span class="token operator">=</span> root<span class="token punctuation">.</span>anuProp <span class="token operator">===</span> <span class="token number">2018</span><span class="token punctuation">;</span>
+    <span class="token comment">//像IE6-8，文本节点不能添加属性</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>useProp<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        root<span class="token punctuation">.</span>anuProp <span class="token operator">=</span> <span class="token keyword">void</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">get</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token keyword">get</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> index <span class="token operator">=</span> topNodes<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>index <span class="token operator">!==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> topFibers<span class="token punctuation">[</span>index<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>onlyGet<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">let</span> container <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Fiber</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+        stateNode<span class="token punctuation">:</span> root<span class="token punctuation">,</span>
+        tag<span class="token punctuation">:</span> <span class="token number">5</span><span class="token punctuation">,</span>
+        name<span class="token punctuation">:</span> <span class="token string">&quot;hostRoot&quot;</span><span class="token punctuation">,</span>
+        <span class="token comment">//contextStack的对象 总是它的后面的元素的并集 ［dUcUbUa, cUbUa, bUa, a, {}］</span>
+        contextStack<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        containerStack<span class="token punctuation">:</span> <span class="token punctuation">[</span>root<span class="token punctuation">]</span><span class="token punctuation">,</span>
+        microtasks<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        type<span class="token punctuation">:</span> root<span class="token punctuation">.</span>nodeName <span class="token operator">||</span> root<span class="token punctuation">.</span>type<span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>useProp<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        root<span class="token punctuation">.</span>_reactInternalFiber <span class="token operator">=</span> container<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    topNodes<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>root<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    topFibers<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>container<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> container<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p>主要做了4件事</p><ol><li>创建一个Fiber作为container并绑定到root的_reactInternalFiber属性上</li><li>在TopNodes队列(栈？)中把root放入</li><li>在TopFiber中把container放入</li><li>返回这个Fiber作为render中的container</li></ol><p>接着</p><pre class="language-javascript"><code>    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>container<span class="token punctuation">.</span>hostRoot<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> fiber <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Fiber</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+            type<span class="token punctuation">:</span> Unbatch<span class="token punctuation">,</span>
+            tag<span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            props<span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            hasMounted<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+            memoizedState<span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token keyword">return</span><span class="token punctuation">:</span> container<span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        container<span class="token punctuation">.</span>child <span class="token operator">=</span> fiber<span class="token punctuation">;</span>
+        <span class="token comment">//将updateClassComponent部分逻辑放到这里，我们只需要实例化它</span>
+        <span class="token keyword">let</span> instance <span class="token operator">=</span> <span class="token function">createInstance</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        instance<span class="token punctuation">.</span>updater<span class="token punctuation">.</span>isMounted <span class="token operator">=</span> isMounted<span class="token punctuation">;</span>
+        container<span class="token punctuation">.</span>hostRoot <span class="token operator">=</span> instance<span class="token punctuation">;</span>
+        immediateUpdate <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        Renderer<span class="token punctuation">.</span><span class="token function">emptyElement</span><span class="token punctuation">(</span>container<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre><p>如果container不是没有hostRoot，那么新建一个Fiber作为它的hostRoot
+接下来createInstance</p><pre class="language-javascript"><code>        <span class="token comment">//将updateClassComponent部分逻辑放到这里，我们只需要实例化它</span>
+        <span class="token keyword">let</span> instance <span class="token operator">=</span> <span class="token function">createInstance</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p>这个CreateInstance函数很长，分段分析</p><pre class="language-javascript"><code>    <span class="token keyword">let</span> updater <span class="token operator">=</span> <span class="token punctuation">{</span>
+        mountOrder<span class="token punctuation">:</span> Renderer<span class="token punctuation">.</span>mountOrder<span class="token operator">++</span><span class="token punctuation">,</span> <span class="token comment">// 目测是代表组件mount的顺序</span>
+        enqueueSetState<span class="token punctuation">:</span> returnFalse<span class="token punctuation">,</span> <span class="token comment">// 这是一个返回false的函数</span>
+        isMounted<span class="token punctuation">:</span> isMounted<span class="token punctuation">,</span> <span class="token comment">//这是一个判断组件是否存在的函数</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> <span class="token punctuation">{</span> props<span class="token punctuation">,</span> type<span class="token punctuation">,</span> tag<span class="token punctuation">,</span> ref <span class="token punctuation">}</span> <span class="token operator">=</span> fiber<span class="token punctuation">,</span>
+        isStateless <span class="token operator">=</span> tag <span class="token operator">===</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token comment">// 是否是无状态组件</span>
+        lastOwn <span class="token operator">=</span> Renderer<span class="token punctuation">.</span>currentOwner<span class="token punctuation">,</span> <span class="token comment">// 当前的owner，一开始是null</span>
+        instance <span class="token operator">=</span> <span class="token punctuation">{</span>
+            refs<span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            props<span class="token punctuation">,</span>
+            context<span class="token punctuation">,</span>
+            ref<span class="token punctuation">,</span>
+            __proto__<span class="token punctuation">:</span> type<span class="token punctuation">.</span>prototype
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>
+        <span class="token comment">// 目测是React element 的instance</span>
+    fiber<span class="token punctuation">.</span>errorHook <span class="token operator">=</span> <span class="token string">&quot;constructor&quot;</span><span class="token punctuation">;</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>isStateless<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 无状态组件走的这条路</span>
+            <span class="token function">extend</span><span class="token punctuation">(</span>instance<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+                __isStateless<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+                __init<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+                renderImpl<span class="token punctuation">:</span> type<span class="token punctuation">,</span> 
+                <span class="token comment">// fiber的Type? 有Batch和Unbach两种，这个Batch或UnBatch是一个函数</span>
+                <span class="token comment">// 组件的render方法（可能）？</span>
+                render<span class="token punctuation">:</span> <span class="token keyword">function</span> <span class="token function">f</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">let</span> a <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>__keep<span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>a<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token comment">// 如果有__keep移除keep并且返回__keep.value</span>
+                        <span class="token keyword">delete</span> <span class="token keyword">this</span><span class="token punctuation">.</span>__keep<span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> a<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+                    <span class="token punctuation">}</span>
+                    a <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">renderImpl</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>props<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>context<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">// 使用Batch或者Unbatch渲染出a</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>a <span class="token operator">&amp;&amp;</span> a<span class="token punctuation">.</span>render<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">// 如果a存在并且已经有render函数</span>
+                        <span class="token keyword">delete</span> <span class="token keyword">this</span><span class="token punctuation">.</span>__isStateless<span class="token punctuation">;</span>
+                        <span class="token comment">// 返回一带render方法的纯对象，说明这是带lifycycle hook的无狀态组件</span>
+                        <span class="token comment">// 需要对象里的hook复制到instance中</span>
+                        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token keyword">in</span> a<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                            instance<span class="token punctuation">[</span>i <span class="token operator">==</span> <span class="token string">&quot;render&quot;</span> <span class="token operator">?</span> <span class="token string">&quot;renderImpl&quot;</span> <span class="token punctuation">:</span> i<span class="token punctuation">]</span> <span class="token operator">=</span> a<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">}</span>
+                    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>__init<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token comment">// 初始化过？</span>
+                        <span class="token keyword">this</span><span class="token punctuation">.</span>__keep <span class="token operator">=</span> <span class="token punctuation">{</span>
+                            <span class="token comment">//可能返回一个对象</span>
+                            value<span class="token punctuation">:</span> a<span class="token punctuation">,</span>
+                        <span class="token punctuation">}</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">}</span>
+                    <span class="token keyword">return</span> a<span class="token punctuation">;</span>
+                <span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            Renderer<span class="token punctuation">.</span>currentOwner <span class="token operator">=</span> instance<span class="token punctuation">;</span>
+            <span class="token comment">// Renderer的currentOwner指向当前instance</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>type<span class="token punctuation">.</span>render<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment">//forwardRef函数形式只会执行一次，对象形式执行多次</span>
+                instance<span class="token punctuation">.</span><span class="token function-variable function">render</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">return</span> type<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>props<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>ref<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+                instance<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">delete</span> instance<span class="token punctuation">.</span>__init<span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 有狀态组件</span>
+            instance <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">type</span><span class="token punctuation">(</span>props<span class="token punctuation">,</span> context<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// bew a Batched Component</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>instance <span class="token keyword">instanceof</span> <span class="token class-name">Component</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">throw</span> <span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>type<span class="token punctuation">.</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> doesn't extend React.Component`</span></span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token keyword">finally</span> <span class="token punctuation">{</span>
+        Renderer<span class="token punctuation">.</span>currentOwner <span class="token operator">=</span> lastOwn<span class="token punctuation">;</span>
+        fiber<span class="token punctuation">.</span>stateNode <span class="token operator">=</span> instance<span class="token punctuation">;</span>
+        <span class="token comment">// State node</span>
+        fiber<span class="token punctuation">.</span>updateQueue <span class="token operator">=</span> <span class="token function">UpdateQueue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Update queue will be</span>
+        <span class="token comment">// {</span>
+        <span class="token comment">// pendingStates: [],</span>
+        <span class="token comment">// pendingCbs: []</span>
+        <span class="token comment">// }</span>
+        instance<span class="token punctuation">.</span>_reactInternalFiber <span class="token operator">=</span> fiber<span class="token punctuation">;</span>
+        instance<span class="token punctuation">.</span>updater <span class="token operator">=</span> updater<span class="token punctuation">;</span>
+        instance<span class="token punctuation">.</span>context <span class="token operator">=</span> context<span class="token punctuation">;</span>
+        updater<span class="token punctuation">.</span>enqueueSetState <span class="token operator">=</span> Renderer<span class="token punctuation">.</span>updateComponent<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>type<span class="token punctuation">[</span>gDSFP<span class="token punctuation">]</span> <span class="token operator">||</span> instance<span class="token punctuation">[</span>gSBU<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            instance<span class="token punctuation">.</span>__useNewHooks <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+
+    <span class="token keyword">return</span> instance<span class="token punctuation">;</span>
+</code></pre><p>继续Render往下看</p><pre class="language-javascript"><code>
+        instance<span class="token punctuation">.</span>updater<span class="token punctuation">.</span>isMounted <span class="token operator">=</span> isMounted<span class="token punctuation">;</span> <span class="token comment">//这是一个判断组件是否已经挂载的函数</span>
+        container<span class="token punctuation">.</span>hostRoot <span class="token operator">=</span> instance<span class="token punctuation">;</span> <span class="token comment">// hostRoot。也许是根节点吧</span>
+        immediateUpdate <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token comment">// 立即更新嘛</span>
+        Renderer<span class="token punctuation">.</span><span class="token function">emptyElement</span><span class="token punctuation">(</span>container<span class="token punctuation">)</span> <span class="token comment">// 清空container里的Children</span>
+    <span class="token keyword">let</span> carrier <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token function">updateComponent</span><span class="token punctuation">(</span>
+        container<span class="token punctuation">.</span>hostRoot<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+            child<span class="token punctuation">:</span> vnode<span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token function">wrapCb</span><span class="token punctuation">(</span>callback<span class="token punctuation">,</span> carrier<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token comment">//ReactDOM.render的第三个callback参数</span>
+        immediateUpdate <span class="token comment">// 立即更新，true</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 这里就开始干活了</span>
+</code></pre><p>顺便看看wrapCb</p><pre class="language-javascript"><code><span class="token keyword">function</span> <span class="token function">wrapCb</span><span class="token punctuation">(</span>fn<span class="token punctuation">,</span> carrier<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> fiber <span class="token operator">=</span> <span class="token keyword">get</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取当前instance的Fiber</span>
+        <span class="token keyword">let</span> target <span class="token operator">=</span> fiber<span class="token punctuation">.</span>child <span class="token operator">?</span> fiber<span class="token punctuation">.</span>child<span class="token punctuation">.</span>stateNode <span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        fn <span class="token operator">&amp;&amp;</span> fn<span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 调用构造函数</span>
+        carrier<span class="token punctuation">.</span>instance <span class="token operator">=</span> target<span class="token punctuation">;</span> <span class="token comment">// 看不懂</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><pre class="language-javascript"><code><span class="token keyword">function</span> <span class="token function">updateComponent</span><span class="token punctuation">(</span>instance<span class="token punctuation">,</span> state<span class="token punctuation">,</span> callback<span class="token punctuation">,</span> immediateUpdate<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> fiber <span class="token operator">=</span> <span class="token keyword">get</span><span class="token punctuation">(</span>instance<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//从instance取fiber</span>
+    fiber<span class="token punctuation">.</span>dirty <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token comment">// 也许代表这个节点需要更新？</span>
+    
+    <span class="token keyword">let</span> sn <span class="token operator">=</span> <span class="token function">typeNumber</span><span class="token punctuation">(</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 返回代表Node类型的数字</span>
+        <span class="token comment">// &quot;[object Boolean]&quot;: 2,</span>
+        <span class="token comment">// &quot;[object Number]&quot;: 3,</span>
+        <span class="token comment">// &quot;[object String]&quot;: 4,</span>
+        <span class="token comment">// &quot;[object Function]&quot;: 5,</span>
+        <span class="token comment">// &quot;[object Symbol]&quot;: 6,</span>
+        <span class="token comment">// &quot;[object Array]&quot;: 7</span>
+    <span class="token keyword">let</span> isForced <span class="token operator">=</span> state <span class="token operator">===</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token comment">// forcedUpdate，第一次渲染的时候肯定是true</span>
+    <span class="token keyword">let</span> microtasks <span class="token operator">=</span> <span class="token function">getQueue</span><span class="token punctuation">(</span>fiber<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 目测是一个队列</span>
+    <span class="token comment">// 从当前Fiber往父Fiber找，找到一个非空的microTasks</span>
+    <span class="token comment">// function getQueue(fiber) {</span>
+    <span class="token comment">//     while (fiber) {</span>
+    <span class="token comment">//         if (fiber.microtasks) {</span>
+    <span class="token comment">//             return fiber.microtasks;</span>
+    <span class="token comment">//         }</span>
+    <span class="token comment">//         fiber = fiber.return;</span>
+    <span class="token comment">//     }</span>
+    <span class="token comment">// }</span>
+
+    state <span class="token operator">=</span> isForced <span class="token operator">?</span> <span class="token keyword">null</span> <span class="token punctuation">:</span> sn <span class="token operator">===</span> <span class="token number">5</span> <span class="token operator">||</span> sn <span class="token operator">===</span> <span class="token number">8</span> <span class="token operator">?</span> state <span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    <span class="token comment">// isForced: null</span>
+    <span class="token comment">// </span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>fiber<span class="token punctuation">.</span>setout<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// cWM/cWRP中setState， 不放进列队</span>
+        immediateUpdate <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>isBatching <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>immediateUpdate<span class="token punctuation">)</span> <span class="token operator">||</span> fiber<span class="token punctuation">.</span>_hydrating<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">//事件回调，batchedUpdates, 错误边界, cDM/cDU中setState</span>
+        <span class="token function">pushChildQueue</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> batchedtasks<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        <span class="token comment">//情况4，在钩子外setState或batchedUpdates中ReactDOM.render一棵新树</span>
+        immediateUpdate <span class="token operator">=</span> immediateUpdate <span class="token operator">||</span> <span class="token operator">!</span>fiber<span class="token punctuation">.</span>_hydrating<span class="token punctuation">;</span>
+        <span class="token function">pushChildQueue</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> microtasks<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">mergeUpdates</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> state<span class="token punctuation">,</span> isForced<span class="token punctuation">,</span> callback<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>immediateUpdate<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        Renderer<span class="token punctuation">.</span><span class="token function">scheduleWork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><pre class="language-javascript"><code><span class="token keyword">function</span> <span class="token function">pushChildQueue</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> queue<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">//判定当前节点是否包含已进队的节点</span>
+    <span class="token keyword">let</span> maps <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> queue<span class="token punctuation">.</span>length<span class="token punctuation">,</span> el<span class="token punctuation">;</span> <span class="token punctuation">(</span>el <span class="token operator">=</span> queue<span class="token punctuation">[</span><span class="token operator">--</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">//移除列队中比它小的组件</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>fiber <span class="token operator">===</span> el<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            queue<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//已经放进过，去掉</span>
+            <span class="token keyword">continue</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">fiberContains</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> el<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">//不包含自身</span>
+            queue<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">continue</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        maps<span class="token punctuation">[</span>el<span class="token punctuation">.</span>stateNode<span class="token punctuation">.</span>updater<span class="token punctuation">.</span>mountOrder<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token comment">// 看不懂QwQ</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">let</span> enqueue <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        p <span class="token operator">=</span> fiber<span class="token punctuation">,</span>
+        hackSCU <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>p<span class="token punctuation">.</span><span class="token keyword">return</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        p <span class="token operator">=</span> p<span class="token punctuation">.</span><span class="token keyword">return</span><span class="token punctuation">;</span>
+        <span class="token keyword">var</span> instance <span class="token operator">=</span> p<span class="token punctuation">.</span>stateNode<span class="token punctuation">;</span> 
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>instance<span class="token punctuation">.</span>refs <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>instance<span class="token punctuation">.</span>__isStateless <span class="token operator">&amp;&amp;</span> p<span class="token punctuation">.</span>type <span class="token operator">!==</span> Unbatch <span class="token punctuation">{</span>
+            hackSCU<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">var</span> u <span class="token operator">=</span> instance<span class="token punctuation">.</span>updater<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>maps<span class="token punctuation">[</span>u<span class="token punctuation">.</span>mountOrder<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token comment">//它是已经在列队的某个组件的孩子</span>
+                enqueue <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    hackSCU<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token keyword">function</span> <span class="token punctuation">(</span>el<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">//如果是批量更新，必须强制更新，防止进入SCU</span>
+        el<span class="token punctuation">.</span>updateQueue<span class="token punctuation">.</span>batching <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>enqueue<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        queue<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>fiber<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><pre class="language-javascript"><code><span class="token keyword">function</span> <span class="token function">mergeUpdates</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> state<span class="token punctuation">,</span> isForced<span class="token punctuation">,</span> callback<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> updateQueue <span class="token operator">=</span> fiber<span class="token punctuation">.</span>updateQueue<span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>isForced<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        updateQueue<span class="token punctuation">.</span>isForced <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token comment">// 如果是true就变不回false</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>state<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        updateQueue<span class="token punctuation">.</span>pendingStates<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>state<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isFn</span><span class="token punctuation">(</span>callback<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        updateQueue<span class="token punctuation">.</span>pendingCbs<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>callback<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><pre class="language-javascript"><code><span class="token keyword">function</span> <span class="token function">performWork</span><span class="token punctuation">(</span>deadline<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">//执行当前的所有任务，更新虚拟DOM与真实环境</span>
+    <span class="token function">workLoop</span><span class="token punctuation">(</span>deadline<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><pre class="language-javascript"><code><span class="token keyword">function</span> <span class="token function">workLoop</span><span class="token punctuation">(</span>deadline<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> topWork <span class="token operator">=</span> <span class="token function">getNextUnitOfWork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 当Fiber已经Merge的时候返回undefined，否则返回fiber的microTasks队列里的第一个</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>topWork<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> fiber <span class="token operator">=</span> topWork<span class="token punctuation">,</span>
+            info<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>topWork<span class="token punctuation">.</span>type <span class="token operator">===</span> Unbatch<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            info <span class="token operator">=</span> topWork<span class="token punctuation">.</span><span class="token keyword">return</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            <span class="token keyword">let</span> dom <span class="token operator">=</span> <span class="token function">getContainer</span><span class="token punctuation">(</span>fiber<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            info <span class="token operator">=</span> <span class="token punctuation">{</span>
+                containerStack<span class="token punctuation">:</span> <span class="token punctuation">[</span>dom<span class="token punctuation">]</span><span class="token punctuation">,</span>
+                contextStack<span class="token punctuation">:</span> <span class="token punctuation">[</span>fiber<span class="token punctuation">.</span>stateNode<span class="token punctuation">.</span>unmaskedContext<span class="token punctuation">]</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>fiber <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>fiber<span class="token punctuation">.</span>disposed <span class="token operator">&amp;&amp;</span> deadline<span class="token punctuation">.</span><span class="token function">timeRemaining</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token constant">ENOUGH_TIME</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            fiber <span class="token operator">=</span> <span class="token function">updateEffects</span><span class="token punctuation">(</span>fiber<span class="token punctuation">,</span> topWork<span class="token punctuation">,</span> info<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        arrayPush<span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span>effects<span class="token punctuation">,</span> <span class="token function">collectWork</span><span class="token punctuation">(</span>topWork<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        effects<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>topWork<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>macrotasks<span class="token punctuation">.</span>length <span class="token operator">&amp;&amp;</span> deadline<span class="token punctuation">.</span><span class="token function">timeRemaining</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token constant">ENOUGH_TIME</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">workLoop</span><span class="token punctuation">(</span>deadline<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//收集任务</span>
+        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+            <span class="token function">resetStack</span><span class="token punctuation">(</span>info<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">commitWork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//执行任务</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre></div><!----><!----></div></div></div>
+    <script src="/assets/js/11.68ad2dfd.js" defer></script><script src="/assets/js/app.0caf2975.js" defer></script>
+  </body>
+</html>

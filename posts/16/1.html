@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Iron&#39;s Blog | Ant Design 源码分析（一）: 按钮</title>
+    <meta name="description" content="Just recording something">
+    
+    
+    <link rel="preload" href="/assets/css/23.styles.40677ac6.css" as="style"><link rel="preload" href="/assets/js/app.0caf2975.js" as="script"><link rel="preload" href="/assets/js/15.cb7e4c09.js" as="script"><link rel="prefetch" href="/assets/js/0.9f59e96c.js"><link rel="prefetch" href="/assets/js/1.9710c8e3.js"><link rel="prefetch" href="/assets/js/2.717bf58a.js"><link rel="prefetch" href="/assets/js/3.eb3ce0d5.js"><link rel="prefetch" href="/assets/js/4.81a9fd94.js"><link rel="prefetch" href="/assets/js/5.0289cb67.js"><link rel="prefetch" href="/assets/js/6.58a56d39.js"><link rel="prefetch" href="/assets/js/7.5fb1dc3c.js"><link rel="prefetch" href="/assets/js/8.af6cf755.js"><link rel="prefetch" href="/assets/js/9.d4b854ad.js"><link rel="prefetch" href="/assets/js/10.f94d82bf.js"><link rel="prefetch" href="/assets/js/11.68ad2dfd.js"><link rel="prefetch" href="/assets/js/12.fe4f1f96.js"><link rel="prefetch" href="/assets/js/13.1594182b.js"><link rel="prefetch" href="/assets/js/14.5e2158c7.js"><link rel="prefetch" href="/assets/js/16.637e1af2.js"><link rel="prefetch" href="/assets/js/17.c68f0f15.js"><link rel="prefetch" href="/assets/js/18.3f6c685d.js"><link rel="prefetch" href="/assets/js/19.5d57c2ad.js"><link rel="prefetch" href="/assets/js/20.725e2252.js"><link rel="prefetch" href="/assets/js/21.c0d37235.js"><link rel="prefetch" href="/assets/js/22.c549c2ec.js">
+    <link rel="stylesheet" href="/assets/css/23.styles.40677ac6.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div><a href="/" class="home-link router-link-active"><!----><span class="site-name">
+      Iron's Blog
+    </span></a><div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""><!----></div><!----></div></header><div class="sidebar-mask"></div><div class="sidebar"><!----><!----></div><div class="page"><div class="content"><h1 id="ant-design-源码分析（一）-按钮"><a href="#ant-design-源码分析（一）-按钮" aria-hidden="true" class="header-anchor">#</a> Ant Design 源码分析（一）: 按钮</h1><p><s>在电影里，会有这样的桥段，某人捡了一个遥控器，按下了按钮，一个妹子莫名倒地</s></p><p>按钮可以说是网页上最常见的元素之一了，简单的按钮，可能就是一个<code>&lt;button/&gt;</code>标签，再加上一些样式与事件。而复杂的，则会对按钮的常用功能进行各种封装，以应对各种业务场景。Ant Design 中，仅仅是一个按钮组件，就能管中窥豹，可见一斑。</p><h2 id="按钮的-loading-处理"><a href="#按钮的-loading-处理" aria-hidden="true" class="header-anchor">#</a> 按钮的 loading 处理</h2><p>Ant Design 的按钮有<code>loading</code>属性，他的定义如下</p><pre class="language-text"><code>export interface BaseButtonProps {
+  // 此处省略其它props
+  loading?: boolean | { delay?: number };
+}
+</code></pre><p>当<code>loading</code>的类型为<code>boolean</code>时，组件的 loading 状态受控。当<code>loading</code>为<code>{ delay?: number }</code>时，按钮会进入加载动画，并且在<code>delay</code>秒之后加载动画结束。那么因此可以推断，按钮中本身也有一个 loading 的 state，这个 state 既会受到<code>props.loading</code>的影响，也会在内部由 delay 来 setTimeout。
+因此我们在<code>ButtonState</code>这个接口中，就能发现这个 loading</p><pre class="language-text"><code>interface ButtonState {
+  loading?: boolean | { delay?: number };
+  hasTwoCNChar: boolean;
+}
+</code></pre><p>进一步往下看，通过 React 的<code>getDerivedStateFromProps</code>生命周期，在组件挂载后(<code>didMount</code>)和更新后(<code>didUpdate</code>)将 props 映射到 state 中。</p><pre class="language-text"><code>  static getDerivedStateFromProps(nextProps: ButtonProps, prevState: ButtonState) {
+    // 当props的loading为`boolean`时会同步`props.loading`到`state.loading`
+    if (nextProps.loading instanceof Boolean) {
+      return {
+        ...prevState,
+        loading: nextProps.loading,
+      };
+    }
+    return null;
+  }
+</code></pre><p>那么，在<code>componentDidUpdate</code>中，自然会有处理<code>{delay: number}</code>的<code>loading</code>的逻辑。</p><pre class="language-text"><code>  componentDidUpdate(prevProps: ButtonProps) {
+    this.fixTwoCNChar();
+
+    // 清理上一个timer
+    if (prevProps.loading &amp;&amp; typeof prevProps.loading !== 'boolean') {
+      clearTimeout(this.delayTimeout);
+    }
+
+    const { loading } = this.props;
+
+    // 当前props中有delay的loading时，在delay秒之后设置loading状态为true
+    if (loading &amp;&amp; typeof loading !== 'boolean' &amp;&amp; loading.delay) {
+      // 显然，直接将loading直接设置为对象，确实可以做到loading
+      this.delayTimeout = window.setTimeout(() =&gt; this.setState({ loading }), loading.delay);
+    } else if (prevProps.loading === this.props.loading) {
+      // `prevProps.loading`和`this.props.loading`相同时跳过setState，避免进入无限更新
+      return;
+    } else {
+      this.setState({ loading });
+    }
+  }
+</code></pre><p>最后还有个在 willUnmount 时的扫尾工作，在组件卸载的时候清除 loading 的 timeout 避免空指针引用等问题</p><pre class="language-text"><code>  componentWillUnmount() {
+    if (this.delayTimeout) {
+      clearTimeout(this.delayTimeout);
+    }
+  }
+</code></pre><h2 id="按钮的渲染"><a href="#按钮的渲染" aria-hidden="true" class="header-anchor">#</a> 按钮的渲染</h2><p>与按钮渲染相关的主要有 2 个函数，其中一个是<code>react</code>生命周期自带的 render，render 的实现非常简单，用一个<code>&lt;ConfigCustomer&gt;</code>包裹了<code>this.renderButton</code>，这个<code>ConfigCustomer</code>是由 React context 创建出的一部分，用于 context 的消费</p><pre class="language-tsx"><code>  <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ConfigConsumer</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span><span class="token keyword">this</span><span class="token punctuation">.</span>renderButton<span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ConfigConsumer</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+</code></pre><p>接下来看看最关键的<code>this.renderButton</code>的实现</p><pre class="language-tsx"><code><span class="token function-variable function">renderButton</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">{</span> getPrefixCls <span class="token punctuation">}</span><span class="token punctuation">:</span> ConfigConsumerProps<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> <span class="token punctuation">{</span>
+    prefixCls<span class="token punctuation">:</span> customizePrefixCls<span class="token punctuation">,</span>
+    <span class="token keyword">type</span><span class="token punctuation">,</span>
+    shape<span class="token punctuation">,</span>
+    size<span class="token punctuation">,</span>
+    className<span class="token punctuation">,</span>
+    children<span class="token punctuation">,</span>
+    icon<span class="token punctuation">,</span>
+    ghost<span class="token punctuation">,</span>
+    loading<span class="token punctuation">:</span> _loadingProp<span class="token punctuation">,</span> <span class="token comment">// 这个_loadingProp提取出来只是为了不让他进入...rest中，无其它用处</span>
+    block<span class="token punctuation">,</span>
+    <span class="token operator">...</span>rest
+  <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>props<span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> <span class="token punctuation">{</span> loading<span class="token punctuation">,</span> hasTwoCNChar <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>state<span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> prefixCls <span class="token operator">=</span> <span class="token function">getPrefixCls</span><span class="token punctuation">(</span><span class="token string">'btn'</span><span class="token punctuation">,</span> customizePrefixCls<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 从context中获取class的前缀</span>
+
+  <span class="token comment">// 按钮尺寸</span>
+  <span class="token comment">// large =&gt; lg</span>
+  <span class="token comment">// small =&gt; sm</span>
+  <span class="token keyword">let</span> sizeCls <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span>
+  <span class="token keyword">switch</span> <span class="token punctuation">(</span>size<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">case</span> <span class="token string">'large'</span><span class="token punctuation">:</span>
+      sizeCls <span class="token operator">=</span> <span class="token string">'lg'</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+    <span class="token keyword">case</span> <span class="token string">'small'</span><span class="token punctuation">:</span>
+      sizeCls <span class="token operator">=</span> <span class="token string">'sm'</span><span class="token punctuation">;</span>
+    <span class="token keyword">default</span><span class="token punctuation">:</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">const</span> classes <span class="token operator">=</span> <span class="token function">classNames</span><span class="token punctuation">(</span>prefixCls<span class="token punctuation">,</span> className<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>type<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> <span class="token keyword">type</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>shape<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> shape<span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>sizeCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> sizeCls<span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-icon-only`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> <span class="token operator">!</span>children <span class="token operator">&amp;&amp;</span> children <span class="token operator">!==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> icon<span class="token punctuation">,</span> <span class="token comment">//是否是仅有图标的按钮，这种按钮是圆的</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-loading`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> loading<span class="token punctuation">,</span> <span class="token comment">// 加载中</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-background-ghost`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> ghost<span class="token punctuation">,</span> <span class="token comment">//幽灵按钮</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-two-chinese-chars`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> hasTwoCNChar<span class="token punctuation">,</span> <span class="token comment">// 按钮文字是否是两个中文</span>
+    <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-block`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> block <span class="token comment">// 是否为块状按钮</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> iconType <span class="token operator">=</span> loading <span class="token operator">?</span> <span class="token string">'loading'</span> <span class="token punctuation">:</span> icon<span class="token punctuation">;</span> <span class="token comment">// 按钮加载时icon强制为loading图标</span>
+  <span class="token keyword">const</span> iconNode <span class="token operator">=</span> iconType <span class="token operator">?</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Icon</span> <span class="token attr-name">type</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>iconType<span class="token punctuation">}</span></span> <span class="token punctuation">/&gt;</span></span> <span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">;</span> <span class="token comment">// icon组件</span>
+  <span class="token keyword">const</span> kids <span class="token operator">=</span>
+    children <span class="token operator">||</span> children <span class="token operator">===</span> <span class="token number">0</span> <span class="token comment">// 此处特判0是因为0是falsy但不是nullish，也需要渲染出来</span>
+      <span class="token operator">?</span> React<span class="token punctuation">.</span>Children<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>children<span class="token punctuation">,</span> child <span class="token operator">=&gt;</span>
+          <span class="token function">insertSpace</span><span class="token punctuation">(</span>child<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">isNeedInserted</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+      <span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> linkButtonRestProps <span class="token operator">=</span> <span class="token function">omit</span><span class="token punctuation">(</span>rest <span class="token keyword">as</span> AnchorButtonProps<span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">'htmlType'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 当是link的时候从props中忽略'htmlType'属性</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>linkButtonRestProps<span class="token punctuation">.</span>href <span class="token operator">!==</span> undefined<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// a标签的时候返回一个a标签</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span>
+        <span class="token spread"><span class="token punctuation">{</span><span class="token punctuation">...</span><span class="token attr-value">linkButtonRestProps</span><span class="token punctuation">}</span></span>
+        <span class="token attr-name">className</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>classes<span class="token punctuation">}</span></span>
+        <span class="token attr-name">onClick</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token keyword">this</span><span class="token punctuation">.</span>handleClick<span class="token punctuation">}</span></span>
+        <span class="token attr-name">ref</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token keyword">this</span><span class="token punctuation">.</span>saveButtonRef<span class="token punctuation">}</span></span>
+      <span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token punctuation">{</span>iconNode<span class="token punctuation">}</span><span class="token plain-text">
+        </span><span class="token punctuation">{</span>kids<span class="token punctuation">}</span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// React认不得htmlType，所以需要将它从`rest`提取出来</span>
+  <span class="token keyword">const</span> <span class="token punctuation">{</span> htmlType<span class="token punctuation">,</span> <span class="token operator">...</span>otherProps <span class="token punctuation">}</span> <span class="token operator">=</span> rest <span class="token keyword">as</span> NativeButtonProps<span class="token punctuation">;</span>
+
+  <span class="token comment">// 下面的`&lt;Wave/&gt;`组件，是按钮被点击时从四周扩散的波纹效果</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Wave</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      &lt;button
+        </span><span class="token punctuation">{</span><span class="token operator">...</span>otherProps <span class="token keyword">as</span> NativeButtonProps<span class="token punctuation">}</span><span class="token plain-text">
+        type=</span><span class="token punctuation">{</span>htmlType <span class="token operator">||</span> <span class="token string">'button'</span><span class="token punctuation">}</span><span class="token plain-text">
+        className=</span><span class="token punctuation">{</span>classes<span class="token punctuation">}</span><span class="token plain-text">
+        onClick=</span><span class="token punctuation">{</span><span class="token keyword">this</span><span class="token punctuation">.</span>handleClick<span class="token punctuation">}</span><span class="token plain-text">
+        ref=</span><span class="token punctuation">{</span><span class="token keyword">this</span><span class="token punctuation">.</span>saveButtonRef<span class="token punctuation">}</span><span class="token plain-text">
+      &gt;
+        </span><span class="token punctuation">{</span>iconNode<span class="token punctuation">}</span><span class="token plain-text">
+        </span><span class="token punctuation">{</span>kids<span class="token punctuation">}</span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>Wave</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h2 id="内容为两个中文字时的空格添加"><a href="#内容为两个中文字时的空格添加" aria-hidden="true" class="header-anchor">#</a> 内容为两个中文字时的空格添加</h2><p>进一步观察 Button 的源码，发现当按钮内容为两个中文字时会在其中插入一个空格</p><p>首先看看插入空格的实现</p><pre class="language-tsx"><code><span class="token comment">// 自动地在两个中文字之间插入空格</span>
+<span class="token keyword">function</span> <span class="token function">insertSpace</span><span class="token punctuation">(</span>child<span class="token punctuation">:</span> React<span class="token punctuation">.</span>ReactChild<span class="token punctuation">,</span> needInserted<span class="token punctuation">:</span> <span class="token builtin">boolean</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// 为null直接返回</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>child <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// 是否需要插入</span>
+  <span class="token keyword">const</span> <span class="token constant">SPACE</span> <span class="token operator">=</span> needInserted <span class="token operator">?</span> <span class="token string">' '</span> <span class="token punctuation">:</span> <span class="token string">''</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// child为浏览器原生标签时，判断child.props.children是否为两个中文字符</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>
+    <span class="token keyword">typeof</span> child <span class="token operator">!==</span> <span class="token string">'string'</span> <span class="token operator">&amp;&amp;</span>
+    <span class="token keyword">typeof</span> child <span class="token operator">!==</span> <span class="token string">'number'</span> <span class="token operator">&amp;&amp;</span>
+    <span class="token function">isString</span><span class="token punctuation">(</span>child<span class="token punctuation">.</span><span class="token keyword">type</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+    <span class="token function">isTwoCNChar</span><span class="token punctuation">(</span>child<span class="token punctuation">.</span>props<span class="token punctuation">.</span>children<span class="token punctuation">)</span>
+  <span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> React<span class="token punctuation">.</span><span class="token function">cloneElement</span><span class="token punctuation">(</span>
+      child<span class="token punctuation">,</span>
+      <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+      child<span class="token punctuation">.</span>props<span class="token punctuation">.</span>children<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token constant">SPACE</span><span class="token punctuation">)</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// child为string时，往两个中文字之中插入</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">typeof</span> child <span class="token operator">===</span> <span class="token string">'string'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isTwoCNChar</span><span class="token punctuation">(</span>child<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      child <span class="token operator">=</span> child<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token constant">SPACE</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span>child<span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// 其它情况，直接返回传入的组件</span>
+  <span class="token keyword">return</span> child<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h2 id="按钮组"><a href="#按钮组" aria-hidden="true" class="header-anchor">#</a> 按钮组</h2><p>按钮组的实现非常简单，下面直接贴代码，注释会在代码中</p><pre class="language-tsx"><code><span class="token keyword">const</span> ButtonGroup<span class="token punctuation">:</span> React<span class="token punctuation">.</span><span class="token constant">SFC</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ButtonGroupProps</span><span class="token punctuation">&gt;</span></span><span class="token plain-text"> = props =&gt; (
+  // 从context中接收config
+  </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ConfigConsumer</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+    </span><span class="token punctuation">{</span><span class="token punctuation">(</span><span class="token punctuation">{</span> getPrefixCls <span class="token punctuation">}</span><span class="token punctuation">:</span> ConfigConsumerProps<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> <span class="token punctuation">{</span>
+        prefixCls<span class="token punctuation">:</span> customizePrefixCls<span class="token punctuation">,</span>
+        size<span class="token punctuation">,</span>
+        className<span class="token punctuation">,</span>
+        <span class="token operator">...</span>others
+      <span class="token punctuation">}</span> <span class="token operator">=</span> props<span class="token punctuation">;</span>
+      <span class="token keyword">const</span> prefixCls <span class="token operator">=</span> <span class="token function">getPrefixCls</span><span class="token punctuation">(</span><span class="token string">'btn-group'</span><span class="token punctuation">,</span> customizePrefixCls<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      <span class="token comment">// large =&gt; lg</span>
+      <span class="token comment">// small =&gt; sm</span>
+      <span class="token keyword">let</span> sizeCls <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span> <span class="token comment">// 按钮大小</span>
+      <span class="token keyword">switch</span> <span class="token punctuation">(</span>size<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">case</span> <span class="token string">'large'</span><span class="token punctuation">:</span>
+          sizeCls <span class="token operator">=</span> <span class="token string">'lg'</span><span class="token punctuation">;</span>
+          <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token keyword">case</span> <span class="token string">'small'</span><span class="token punctuation">:</span>
+          sizeCls <span class="token operator">=</span> <span class="token string">'sm'</span><span class="token punctuation">;</span>
+        <span class="token keyword">default</span><span class="token punctuation">:</span>
+          <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+
+      <span class="token keyword">const</span> classes <span class="token operator">=</span> <span class="token function">classNames</span><span class="token punctuation">(</span>
+        prefixCls<span class="token punctuation">,</span>
+        <span class="token punctuation">{</span>
+          <span class="token punctuation">[</span><span class="token template-string"><span class="token string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>prefixCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>sizeCls<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">`</span></span><span class="token punctuation">]</span><span class="token punctuation">:</span> sizeCls <span class="token comment">// 当size位指定时，`${prefixCls}-${sizeCls}`不会出现在最终的className中</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        className
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      <span class="token keyword">return</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token spread"><span class="token punctuation">{</span><span class="token punctuation">...</span><span class="token attr-value">others</span><span class="token punctuation">}</span></span> <span class="token attr-name">className</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>classes<span class="token punctuation">}</span></span> <span class="token punctuation">/&gt;</span></span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token plain-text">
+  </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ConfigConsumer</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+);
+
+export default ButtonGroup;
+</span></code></pre></div><!----><!----></div></div></div>
+    <script src="/assets/js/15.cb7e4c09.js" defer></script><script src="/assets/js/app.0caf2975.js" defer></script>
+  </body>
+</html>

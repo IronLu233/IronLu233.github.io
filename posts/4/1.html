@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Iron&#39;s Blog | React 高阶函数与 TypeScript</title>
+    <meta name="description" content="Just recording something">
+    
+    
+    <link rel="preload" href="/assets/css/23.styles.40677ac6.css" as="style"><link rel="preload" href="/assets/js/app.0caf2975.js" as="script"><link rel="preload" href="/assets/js/10.f94d82bf.js" as="script"><link rel="prefetch" href="/assets/js/0.9f59e96c.js"><link rel="prefetch" href="/assets/js/1.9710c8e3.js"><link rel="prefetch" href="/assets/js/2.717bf58a.js"><link rel="prefetch" href="/assets/js/3.eb3ce0d5.js"><link rel="prefetch" href="/assets/js/4.81a9fd94.js"><link rel="prefetch" href="/assets/js/5.0289cb67.js"><link rel="prefetch" href="/assets/js/6.58a56d39.js"><link rel="prefetch" href="/assets/js/7.5fb1dc3c.js"><link rel="prefetch" href="/assets/js/8.af6cf755.js"><link rel="prefetch" href="/assets/js/9.d4b854ad.js"><link rel="prefetch" href="/assets/js/11.68ad2dfd.js"><link rel="prefetch" href="/assets/js/12.fe4f1f96.js"><link rel="prefetch" href="/assets/js/13.1594182b.js"><link rel="prefetch" href="/assets/js/14.5e2158c7.js"><link rel="prefetch" href="/assets/js/15.cb7e4c09.js"><link rel="prefetch" href="/assets/js/16.637e1af2.js"><link rel="prefetch" href="/assets/js/17.c68f0f15.js"><link rel="prefetch" href="/assets/js/18.3f6c685d.js"><link rel="prefetch" href="/assets/js/19.5d57c2ad.js"><link rel="prefetch" href="/assets/js/20.725e2252.js"><link rel="prefetch" href="/assets/js/21.c0d37235.js"><link rel="prefetch" href="/assets/js/22.c549c2ec.js">
+    <link rel="stylesheet" href="/assets/css/23.styles.40677ac6.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div><a href="/" class="home-link router-link-active"><!----><span class="site-name">
+      Iron's Blog
+    </span></a><div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""><!----></div><!----></div></header><div class="sidebar-mask"></div><div class="sidebar"><!----><!----></div><div class="page"><div class="content"><h1 id="react-高阶函数与-typescript"><a href="#react-高阶函数与-typescript" aria-hidden="true" class="header-anchor">#</a> React 高阶函数与 TypeScript</h1><h2 id="background"><a href="#background" aria-hidden="true" class="header-anchor">#</a> Background</h2><p>在 React-Native 的开发中，遇到一个这样的问题：</p><p>在一开始的技术选型上，使用了<code>react-router</code>，在页面写好了之后，发现 React-Router 在 React-Native 下有 2 个缺陷</p><ol><li>页面始终在一个 Activity 上，当用户点击返回时，会直接退回到桌面</li><li>React-Router 的 history.goBack()方法在 iOS 上无效</li></ol><p>第一个问题可以通过对<code>BackHandler</code>添加 listener 来解决，但第二个问题我并没有找到解决方法。</p><p>最终将决定将<code>react-router</code>换为<code>react-navigation</code>来实现路由和导航。</p><p><code>react-navigation</code>的路由声明方式和<code>react-router</code>有很大不同，他的路由声明是这样的。
+<img src="/assets/img/1.899ec5da.png" alt>
+而且<code>createStackNavigator</code>返回的<code>RootStack</code>组件外不能包裹父组件，否则无法运行，这导致<code>redux</code>的 <code>Provider</code> 组件不能包裹在<code>RootStack</code>外。</p><h2 id="solution"><a href="#solution" aria-hidden="true" class="header-anchor">#</a> Solution</h2><h3 id="高阶函数-hoc"><a href="#高阶函数-hoc" aria-hidden="true" class="header-anchor">#</a> 高阶函数(HOC)</h3><p>通过 React 的高阶函数，使得传入高阶函数的<code>Component</code>外层被包裹上<code>&lt;Provider store={store}&gt;&lt;Component /&gt;&lt;Provider&gt;</code>，这样<code>Component</code>中的<code>connect</code>方法就能从<code>redux</code>注入到<code>component</code>的<code>props</code>中了。</p><p>我们先写一个不带类型的<code>withProvider</code> (<strong>代码里会留有一些问题，下面会讲到</strong>)</p><p>然后我们用 TypeScript 加上类型
+<img src="/assets/img/3.5c50caf2.png" alt>
+接着我们会发现，TypeScript 报了这样一个语法错误:</p><pre class="language-text"><code>[ts] JSX element type 'Component' does not have any construct or call signatures.
+</code></pre><p>通过 Google，在 Stackoverflow 上的
+<a href="https://stackoverflow.com/questions/31815633/what-does-the-error-jsx-element-type-does-not-have-any-construct-or-call" target="_blank" rel="noopener noreferrer">这里</a>
+找到了这个问题的答案
+在高阶函数的第一层，我们传入的 Component 其实是一个组件的构造函数，而不是 Component 的一个实例。</p><p>因此，将 Component 的类型定义为 React.Component 显然是把他当做实例了。我们应该将 Component 的类型定义为: (Component: new (props: P) =&gt; React.Component)</p><p>当然<code>typeof React.Component</code>更简单。一个类的 type 就是他的构造函数</p><p>那么我们的代码就可以改成这样
+<img src="/assets/img/4.1c66b3b2.png" alt></p><h3 id="解决-component-静态方法丢失问题"><a href="#解决-component-静态方法丢失问题" aria-hidden="true" class="header-anchor">#</a> 解决 Component 静态方法丢失问题</h3><p>仔细看上面我们写的代码，定义在 Component 上的静态方法并没有被我们加入到外层的 WithProvider 中，在我的这个项目中，<code>react-navigation</code>通过读取组件的 static property 中的<code>navigationOptions</code>来获取各个 screen 导航栏的配置，当他被 withProvider 包裹之后，<code>navigationOptions</code>上的信息就丢失了。我们需要在高阶函数中将<code>Component</code>的静态方法和属性复制到<code>WithProvider</code>组件中。</p><pre class="language-text"><code>// ... the code before.
+WithProvider.navigationOptions = Component.navigationOptions;
+return WithProvider;
+</code></pre><p>当然如果静态的方法和属性比较多，手写复制是比较麻烦的，社区为我们提供了一个偷懒的方式
+使用<a href="https://github.com/mridgway/hoist-non-react-statics" target="_blank" rel="noopener noreferrer">hoist-non-react-statics</a>可以非常愉快地复制这些静态的属性和方法。
+<img src="/assets/img/5.cba845f3.png" alt></p><h3 id="ref-丢失问题"><a href="#ref-丢失问题" aria-hidden="true" class="header-anchor">#</a> Ref 丢失问题</h3><p>待更新</p><h2 id="参考"><a href="#参考" aria-hidden="true" class="header-anchor">#</a> 参考</h2><p><a href="https://www.typescriptlang.org/docs/handbook/classes.html" target="_blank" rel="noopener noreferrer">TypeScript 官方文档关于 class 类型和构造函数的部分</a></p><p><a href="https://stackoverflow.com/questions/31815633/what-does-the-error-jsx-element-type-does-not-have-any-construct-or-call" target="_blank" rel="noopener noreferrer">StackoverFlow</a>:</p><p><a href="https://github.com/mridgway/hoist-non-react-statics" target="_blank" rel="noopener noreferrer">Hoist-non-react-statics</a></p></div><!----><!----></div></div></div>
+    <script src="/assets/js/10.f94d82bf.js" defer></script><script src="/assets/js/app.0caf2975.js" defer></script>
+  </body>
+</html>
